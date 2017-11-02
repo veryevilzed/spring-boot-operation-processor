@@ -1,9 +1,7 @@
-package ru.veryevilzed.tools.dto;
+package ru.veryevilzed.tools.processor;
 
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.function.Consumer;
 
 public abstract class Action<T> implements Comparable<Action> {
 

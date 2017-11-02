@@ -1,4 +1,4 @@
-package ru.veryevilzed.tools.test.dto;
+package ru.veryevilzed.tools.test.process;
 
 import lombok.Data;
 

@@ -1,4 +1,4 @@
-package ru.veryevilzed.tools.dto;
+package ru.veryevilzed.tools.processor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;

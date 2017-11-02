@@ -1,6 +1,6 @@
-package ru.veryevilzed.tools.test.dto;
+package ru.veryevilzed.tools.test.process;
 
-import ru.veryevilzed.tools.dto.Action;
+import ru.veryevilzed.tools.processor.Action;
 
 public class ConsoleAction extends Action<Transaction> {
 

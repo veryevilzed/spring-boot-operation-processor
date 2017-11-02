@@ -1,7 +1,7 @@
-package ru.veryevilzed.tools.test.dto;
+package ru.veryevilzed.tools.test.process;
 
 import lombok.Data;
-import ru.veryevilzed.tools.dto.Filter;
+import ru.veryevilzed.tools.processor.Filter;
 
 import java.util.Set;
 

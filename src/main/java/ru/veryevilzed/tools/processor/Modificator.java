@@ -1,4 +1,4 @@
-package ru.veryevilzed.tools.dto;
+package ru.veryevilzed.tools.processor;
 
         import lombok.Getter;
         import lombok.Setter;

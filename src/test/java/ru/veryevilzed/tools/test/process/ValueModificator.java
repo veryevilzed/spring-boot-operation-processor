@@ -1,7 +1,7 @@
-package ru.veryevilzed.tools.test.dto;
+package ru.veryevilzed.tools.test.process;
 
 import lombok.Data;
-import ru.veryevilzed.tools.dto.Modificator;
+import ru.veryevilzed.tools.processor.Modificator;
 
 @Data
 public class ValueModificator extends Modificator<Transaction> {

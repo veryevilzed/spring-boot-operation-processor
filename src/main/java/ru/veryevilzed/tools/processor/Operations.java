@@ -95,6 +95,8 @@ public class Operations<T> {
         this(file, clazz, "ru.veryevilzed.tools");
     }
 
+
+    @SuppressWarnings("unchecked")
     public Operations(File file, Class<T> clazz, String defaultNamespace) throws IOException {
         this.defaultNamespace = defaultNamespace;
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());

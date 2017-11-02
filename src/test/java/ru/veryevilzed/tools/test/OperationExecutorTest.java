@@ -12,12 +12,17 @@ public class OperationExecutorTest {
     @Test
     public void operationFilter() throws IOException {
 
-        Operations<Transaction> operations = new Operations<>(new File("example/process.yml"), Transaction.class);
         Transaction t = new Transaction();
         t.setId(10);
         t.setCurrency("EUR");
         t.setValue(500);
 
+
+        Operations<Transaction> operations = new Operations<>(
+                new File("example/process.yml"),
+                Transaction.class,
+                "ru.veryevilzed.tools.test.dto"
+        );
         operations.exec(t);
     }
 }

@@ -3,6 +3,7 @@ package ru.veryevilzed.tools.dto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -20,7 +21,8 @@ public class Operations<T> {
 
     ObjectMapper mapper = new ObjectMapper();
 
-    public String getDefaultNameSpace() { return "ru.veryevilzed.tools"; }
+    @Getter
+    String defaultNamespace = "ru.veryevilzed.tools";
 
     private List<Operation> filtering(final T obj) {
         return operations.stream().filter(o -> o.filter(obj)).collect(Collectors.toList());
@@ -59,7 +61,7 @@ public class Operations<T> {
 
             if (clz == null) {
                 try {
-                    clz = Class.forName(String.format("%s.%s", getDefaultNameSpace(), obj.getKey()));
+                    clz = Class.forName(String.format("%s.%s", defaultNamespace, obj.getKey()));
                 } catch (ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
@@ -89,8 +91,12 @@ public class Operations<T> {
         return res;
     }
 
-
     public Operations(File file, Class<T> clazz) throws IOException {
+        this(file, clazz, "ru.veryevilzed.tools");
+    }
+
+    public Operations(File file, Class<T> clazz, String defaultNamespace) throws IOException {
+        this.defaultNamespace = defaultNamespace;
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         operations = new ArrayList<>();
         List<Map<String, Object>> values = (List<Map<String, Object>>)mapper.readValue(file, List.class);

@@ -1,20 +1,20 @@
 
 
 - name: general
-  test.dto.MinValueFilter:
+  MinValueFilter:
     minValue: 10
     maxValue: 400
-  test.dto.ConsoleAction:
+  ConsoleAction:
     order: 0
 
 
 - name: second
-  test.dto.MinValueFilter:
+  MinValueFilter:
     minValue: 300
     maxValue: 1100
-  test.dto.ValueModificator:
+  ValueModificator:
     multiply: 10
-  test.dto.ConsoleAction:
+  ConsoleAction:
     order: 0
 
 

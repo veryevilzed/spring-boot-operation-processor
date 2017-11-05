@@ -12,6 +12,7 @@ import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -53,15 +54,21 @@ public class Operations<T> {
                 res.setName((String)obj.getValue());
                 continue;
             }
+            String key = obj.getKey();
+            String suffix = "";
+            if (key.contains("_")) {
+                key = obj.getKey().split(Pattern.quote("_"),2)[0];
+                suffix = obj.getKey().split(Pattern.quote("_"), 2)[1];
+            }
 
             Class clz = null;
             try {
-                clz = Class.forName(obj.getKey());
+                clz = Class.forName(key);
             }catch (ClassNotFoundException ignored){ }
 
             if (clz == null) {
                 try {
-                    clz = Class.forName(String.format("%s.%s", defaultNamespace, obj.getKey()));
+                    clz = Class.forName(String.format("%s.%s", defaultNamespace, key));
                 } catch (ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
@@ -69,23 +76,35 @@ public class Operations<T> {
 
             ParameterizedType superClass = (ParameterizedType)clz.getGenericSuperclass();
             if (superClass.getActualTypeArguments()[0] != clazz){
-                log.warn("Rules {} skipped. Transaction Class is not {}", obj.getKey(), clazz.getName());
+                log.warn("Rules {} skipped. Transaction Class is not {}", key, clazz.getName());
                 continue;
             }
 
             if (obj.getValue().getClass() == Map.class){
-                log.warn("Rules {} skipped. Value is not Map.class", obj.getKey(), obj.getValue().getClass().getName());
+                log.warn("Rules {} skipped. Value is not Map.class", key, obj.getValue().getClass().getName());
                 continue;
             }
 
-            if (clz.getSuperclass() == Filter.class)
-                res.getFilters().add((Filter<T>)mapper.convertValue(obj.getValue(), clz));
+            if (clz.getSuperclass() == Filter.class) {
+                Filter<T> o = (Filter<T>) mapper.convertValue(obj.getValue(), clz);
+                o.setName((String)data.getOrDefault("name", ""));
+                o.setSuffix(suffix);
+                res.getFilters().add(o);
+            }
 
-            if (clz.getSuperclass() == Action.class)
-                res.getActions().add((Action<T>)mapper.convertValue(obj.getValue(), clz));
+            if (clz.getSuperclass() == Action.class) {
+                Action<T> o = (Action<T>) mapper.convertValue(obj.getValue(), clz);
+                o.setName((String)data.getOrDefault("name", ""));
+                o.setSuffix(suffix);
+                res.getActions().add(o);
+            }
 
-            if (clz.getSuperclass() == Modificator.class)
-                res.getModificators().add((Modificator<T>)mapper.convertValue(obj.getValue(), clz));
+            if (clz.getSuperclass() == Modificator.class) {
+                Modificator<T> o = (Modificator<T>) mapper.convertValue(obj.getValue(), clz);
+                o.setName((String)data.getOrDefault("name", ""));
+                o.setSuffix(suffix);
+                res.getModificators().add(o);
+            }
 
         }
         return res;
@@ -108,8 +127,6 @@ public class Operations<T> {
 
     @Data
     private class Operation {
-
-
 
         String name;
         List<Filter<T>> filters = new ArrayList<>();

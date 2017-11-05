@@ -9,6 +9,12 @@ public abstract class Action<T> implements Comparable<Action> {
     @Setter
     int order = 0;
 
+    @Getter @Setter
+    String name = "";
+
+    @Getter @Setter
+    String suffix = "";
+
     @Override
     public int compareTo(Action o) {
         return this.order - o.order;

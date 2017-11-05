@@ -14,6 +14,10 @@
     maxValue: 1100
   ValueModificator:
     multiply: 10
+  ValueModificator_2:
+    multiply: 10
+  ValueModificator_3:
+    multiply: 10
   ConsoleAction:
     order: 0
 

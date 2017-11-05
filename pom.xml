@@ -6,7 +6,7 @@
 
     <groupId>ru.veryevilzed.tools</groupId>
     <artifactId>spring-boot-operation-processor</artifactId>
-    <version>0.1</version>
+    <version>0.2</version>
 
 
     <parent>

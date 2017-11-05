@@ -11,6 +11,12 @@ public abstract class Filter<T> implements Comparable<Filter> {
     @Getter @Setter
     int order = 0;
 
+    @Getter @Setter
+    String name = "";
+
+    @Getter @Setter
+    String suffix = "";
+
     @Override
     public int compareTo(Filter o) {
         return this.order - o.order;

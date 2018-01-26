@@ -9,7 +9,7 @@ public class ValueModificator extends Modificator<Transaction> {
     int multiply = 1;
 
     @Override
-    public Transaction modificate(Transaction item) {
+    public Transaction modify(Transaction item) {
         item.setValue(item.getValue() * multiply);
         return item;
     }

@@ -7,13 +7,15 @@ public abstract class Action<T> implements Comparable<Action> {
 
     @Getter
     @Setter
-    int order = 0;
+    private int order = 0;
 
-    @Getter @Setter
-    String name = "";
+    @Getter
+    @Setter
+    private String name = "";
 
-    @Getter @Setter
-    String suffix = "";
+    @Getter
+    @Setter
+    private String suffix = "";
 
     @Override
     public int compareTo(Action o) {

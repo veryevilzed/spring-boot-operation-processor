@@ -8,14 +8,17 @@ import lombok.Setter;
  */
 public abstract class Filter<T> implements Comparable<Filter> {
 
-    @Getter @Setter
-    int order = 0;
+    @Getter
+    @Setter
+    private int order = 0;
 
-    @Getter @Setter
-    String name = "";
+    @Getter
+    @Setter
+    private String name = "";
 
-    @Getter @Setter
-    String suffix = "";
+    @Getter
+    @Setter
+    private String suffix = "";
 
     @Override
     public int compareTo(Filter o) {
@@ -23,5 +26,4 @@ public abstract class Filter<T> implements Comparable<Filter> {
     }
 
     public abstract boolean filter(T item);
-
 }

@@ -18,12 +18,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Operations<T> {
 
-    List<Operation> operations;
+    private List<Operation> operations;
 
-    ObjectMapper mapper = new ObjectMapper();
+    private ObjectMapper mapper = new ObjectMapper();
 
     @Getter
-    String defaultNamespace = "ru.veryevilzed.tools";
+    private String defaultNamespace = "ru.veryevilzed.tools";
 
     private List<Operation> filtering(final T obj) {
         return operations.stream().filter(o -> o.filter(obj)).collect(Collectors.toList());
@@ -139,7 +139,7 @@ public class Operations<T> {
 
         T modification(T item) {
             for(Modificator<T> mod : modificators)
-                item = mod.modificate(item);
+                item = mod.modify(item);
             return item;
         }
 

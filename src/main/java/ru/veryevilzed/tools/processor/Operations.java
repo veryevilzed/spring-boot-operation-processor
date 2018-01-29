@@ -99,11 +99,11 @@ public class Operations<T> {
                 res.getActions().add(o);
             }
 
-            if (clz.getSuperclass() == Modificator.class) {
-                Modificator<T> o = (Modificator<T>) mapper.convertValue(obj.getValue(), clz);
+            if (clz.getSuperclass() == Modifier.class) {
+                Modifier<T> o = (Modifier<T>) mapper.convertValue(obj.getValue(), clz);
                 o.setName((String)data.getOrDefault("name", ""));
                 o.setSuffix(suffix);
-                res.getModificators().add(o);
+                res.getModifiers().add(o);
             }
 
         }
@@ -130,7 +130,7 @@ public class Operations<T> {
 
         String name;
         List<Filter<T>> filters = new ArrayList<>();
-        List<Modificator<T>> modificators = new ArrayList<>();
+        List<Modifier<T>> modifiers = new ArrayList<>();
         List<Action<T>> actions = new ArrayList<>();
 
         boolean filter(T item) {
@@ -138,7 +138,7 @@ public class Operations<T> {
         }
 
         T modification(T item) {
-            for(Modificator<T> mod : modificators)
+            for(Modifier<T> mod : modifiers)
                 item = mod.modify(item);
             return item;
         }

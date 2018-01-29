@@ -1,10 +1,10 @@
 package ru.veryevilzed.tools.test.process;
 
 import lombok.Data;
-import ru.veryevilzed.tools.processor.Modificator;
+import ru.veryevilzed.tools.processor.Modifier;
 
 @Data
-public class ValueModificator extends Modificator<Transaction> {
+public class ValueModifier extends Modifier<Transaction> {
 
     int multiply = 1;
 

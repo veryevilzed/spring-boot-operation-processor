@@ -3,7 +3,7 @@ package ru.veryevilzed.tools.processor;
 import lombok.Getter;
 import lombok.Setter;
 
-public abstract class Modificator<T> implements Comparable<Modificator> {
+public abstract class Modifier<T> implements Comparable<Modifier> {
 
     @Getter
     @Setter
@@ -18,7 +18,7 @@ public abstract class Modificator<T> implements Comparable<Modificator> {
     private String suffix = "";
 
     @Override
-    public int compareTo(Modificator o) {
+    public int compareTo(Modifier o) {
         return this.order - o.order;
     }
 

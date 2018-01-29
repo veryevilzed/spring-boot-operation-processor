@@ -12,11 +12,11 @@
   MinValueFilter:
     minValue: 300
     maxValue: 1100
-  ValueModificator:
+  ValueModifier:
     multiply: 10
-  ValueModificator_2:
+  ValueModifier_2:
     multiply: 10
-  ValueModificator_3:
+  ValueModifier_3:
     multiply: 10
   ConsoleAction:
     order: 0

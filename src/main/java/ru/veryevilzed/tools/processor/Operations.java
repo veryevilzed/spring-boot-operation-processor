@@ -2,152 +2,170 @@ package ru.veryevilzed.tools.processor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import lombok.Data;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
+import java.lang.reflect.Type;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
 public class Operations<T> {
 
-    private List<Operation> operations;
+    private static final String DEFAULT_NAMESPACE = "ru.veryevilzed.tools";
+
+    private static final String NAME = "name";
+    private static final String EMPTY = "";
+
+    private List<Operation> operations = new LinkedList<>();
 
     private ObjectMapper mapper = new ObjectMapper();
 
-    @Getter
-    private String defaultNamespace = "ru.veryevilzed.tools";
+    private String namespace;
 
-    private List<Operation> filtering(final T obj) {
-        return operations.stream().filter(o -> o.filter(obj)).collect(Collectors.toList());
+    public Operations(File file, Class<T> clazz) throws IOException {
+        this(file, clazz, DEFAULT_NAMESPACE);
     }
 
-    private void execution(final T obj, List<Operation> operations) {
-        for(Operation o : operations) {
-            T item = obj;
-            item = o.modification(item);
-            o.execution(item);
-        }
+    @SuppressWarnings("unchecked")
+    public Operations(File file, Class<T> clazz, String namespace) throws IOException {
+        this.namespace = namespace;
+        ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
+        List<Map<String, Object>> values = (List<Map<String, Object>>) yamlMapper.readValue(file, List.class);
+        operations = values.stream().map(o -> getOperation(o, clazz)).collect(Collectors.toList());
     }
 
     /**
      * Выполнить действия связанные с операцией
-     * @param item
      */
     public void exec(T item) {
-         execution(item, filtering(item));
+        executeAll(item, filterByAll(item));
+    }
+
+    private List<Operation> filterByAll(T obj) {
+        return operations.stream().filter(o -> o.filter(obj)).collect(Collectors.toList());
+    }
+
+    private void executeAll(T obj, List<Operation> operationsToExecute) {
+        for (Operation o : operationsToExecute) {
+            T item = obj;
+            item = o.modify(item);
+            o.execute(item);
+        }
     }
 
     @SuppressWarnings("unchecked")
-    private Operation getOperation(Map<String, Object> data, Class<T> clazz) {
+    private Operation getOperation(Map<String, Object> data, Class<T> operationPartParameter) {
 
-        Operation res = new Operation();
-        for(Map.Entry<String, Object> obj : data.entrySet()) {
-            if (obj.getKey().equals("name")){
-                res.setName((String)obj.getValue());
+        Operation operation = new Operation();
+
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
+
+            if (entry.getKey().equals(NAME)) {
+                operation.setName((String) entry.getValue());
                 continue;
             }
-            String key = obj.getKey();
+
+            String key = entry.getKey();
             String suffix = "";
             if (key.contains("_")) {
-                key = obj.getKey().split(Pattern.quote("_"),2)[0];
-                suffix = obj.getKey().split(Pattern.quote("_"), 2)[1];
+                String[] parts = entry.getKey().split(Pattern.quote("_"), 2);
+                key = parts[0];
+                suffix = parts[1];
             }
 
-            Class clz = null;
-            try {
-                clz = Class.forName(key);
-            }catch (ClassNotFoundException ignored){ }
+            // Load operation part class
+            Class operationPartClass = loadOperationPartImplementingClass(key);
 
-            if (clz == null) {
-                try {
-                    clz = Class.forName(String.format("%s.%s", defaultNamespace, key));
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-            ParameterizedType superClass = (ParameterizedType)clz.getGenericSuperclass();
-            if (superClass.getActualTypeArguments()[0] != clazz){
-                log.warn("Rules {} skipped. Transaction Class is not {}", key, clazz.getName());
+            // Check parameter type for operation and it's superclass (they should match)
+            ParameterizedType operationPartSuperclass = (ParameterizedType) operationPartClass.getGenericSuperclass();
+            Type superclassParameter = operationPartSuperclass.getActualTypeArguments()[0];
+            if (!superclassParameter.equals(operationPartParameter)) {
+                log.warn(
+                    "Rules for {} are skipped. Wrong parameterized type found {}<{}>, but {}<{}> required!",
+                    key, operationPartClass, operationPartParameter, operationPartSuperclass, superclassParameter
+                );
                 continue;
             }
 
-            if (obj.getValue().getClass() == Map.class){
-                log.warn("Rules {} skipped. Value is not Map.class", key, obj.getValue().getClass().getName());
+            // Check value implementing class (should be java.util.Map instance)
+            Class<?> valueClass = entry.getValue().getClass();
+            if (!Map.class.isAssignableFrom(valueClass)) {
+                log.warn(
+                    "Rules for {} are skipped. Should have been mapped as instance of Map, but {} was found",
+                    key, valueClass
+                );
                 continue;
             }
 
-            if (clz.getSuperclass() == Filter.class) {
-                Filter<T> o = (Filter<T>) mapper.convertValue(obj.getValue(), clz);
-                o.setName((String)data.getOrDefault("name", ""));
+            // Fill the operation part data for specific entry
+            if (Filter.class.isAssignableFrom(operationPartClass)) {
+                Filter<T> o = (Filter<T>) mapper.convertValue(entry.getValue(), operationPartClass);
+                o.setName((String) data.getOrDefault(NAME, EMPTY));
                 o.setSuffix(suffix);
-                res.getFilters().add(o);
-            }
-
-            if (clz.getSuperclass() == Action.class) {
-                Action<T> o = (Action<T>) mapper.convertValue(obj.getValue(), clz);
-                o.setName((String)data.getOrDefault("name", ""));
+                operation.getFilters().add(o);
+            } else if (Action.class.isAssignableFrom(operationPartClass)) {
+                Action<T> o = (Action<T>) mapper.convertValue(entry.getValue(), operationPartClass);
+                o.setName((String) data.getOrDefault(NAME, EMPTY));
                 o.setSuffix(suffix);
-                res.getActions().add(o);
-            }
-
-            if (clz.getSuperclass() == Modifier.class) {
-                Modifier<T> o = (Modifier<T>) mapper.convertValue(obj.getValue(), clz);
-                o.setName((String)data.getOrDefault("name", ""));
+                operation.getActions().add(o);
+            } else if (Modifier.class.isAssignableFrom(operationPartClass)) {
+                Modifier<T> o = (Modifier<T>) mapper.convertValue(entry.getValue(), operationPartClass);
+                o.setName((String) data.getOrDefault(NAME, EMPTY));
                 o.setSuffix(suffix);
-                res.getModifiers().add(o);
+                operation.getModifiers().add(o);
+            } else {
+                log.warn("Unsupported operation part type: {}", operationPartClass);
             }
-
         }
-        return res;
+        return operation;
     }
 
-    public Operations(File file, Class<T> clazz) throws IOException {
-        this(file, clazz, "ru.veryevilzed.tools");
+    private Class loadOperationPartImplementingClass(String key) {
+
+        // Try to load class with the specified name (probably with namespace/package)
+        try {
+            return Class.forName(key);
+        } catch (ClassNotFoundException ignore) { /**/ }
+
+        // In case of failure try to load with the specified namespace/package
+        try {
+            return Class.forName(namespace + "." + key);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
-
-
-    @SuppressWarnings("unchecked")
-    public Operations(File file, Class<T> clazz, String defaultNamespace) throws IOException {
-        this.defaultNamespace = defaultNamespace;
-        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        operations = new ArrayList<>();
-        List<Map<String, Object>> values = (List<Map<String, Object>>)mapper.readValue(file, List.class);
-        operations = values.stream().map(o -> getOperation(o, clazz)).collect(Collectors.toList());
-    }
-
 
     @Data
     private class Operation {
 
-        String name;
-        List<Filter<T>> filters = new ArrayList<>();
-        List<Modifier<T>> modifiers = new ArrayList<>();
-        List<Action<T>> actions = new ArrayList<>();
+        private String name;
+        private List<Filter<T>> filters = new LinkedList<>();
+        private List<Modifier<T>> modifiers = new LinkedList<>();
+        private List<Action<T>> actions = new LinkedList<>();
 
         boolean filter(T item) {
             return filters.stream().allMatch(f -> f.filter(item));
         }
 
-        T modification(T item) {
-            for(Modifier<T> mod : modifiers)
+        T modify(T item) {
+            for (Modifier<T> mod : modifiers) {
                 item = mod.modify(item);
+            }
             return item;
         }
 
-        void execution(final T item) {
-            for(Action<T> act : actions)
+        void execute(T item) {
+            for (Action<T> act : actions) {
                 act.action(item);
+            }
         }
-
     }
-
 }

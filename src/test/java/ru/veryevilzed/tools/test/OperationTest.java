@@ -1,13 +1,15 @@
 package ru.veryevilzed.tools.test;
 
 import org.junit.Test;
+import org.mockito.Mockito;
+
 import ru.veryevilzed.tools.processor.Operations;
 import ru.veryevilzed.tools.test.process.Transaction;
 
 import java.io.File;
 import java.io.IOException;
 
-public class OperationExecutorTest {
+public class OperationTest {
 
     @Test
     public void operationFilter() throws IOException {

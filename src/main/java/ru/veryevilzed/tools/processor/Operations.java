@@ -39,7 +39,7 @@ public class Operations<T> {
         this.namespace = namespace;
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         List<Map<String, Object>> values = (List<Map<String, Object>>) yamlMapper.readValue(file, List.class);
-        operations = values.stream().map(o -> getOperation(o, clazz)).collect(Collectors.toList());
+        operations = values.stream().map(o -> loadOperation(o, clazz)).collect(Collectors.toList());
     }
 
     /**
@@ -62,7 +62,7 @@ public class Operations<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private Operation getOperation(Map<String, Object> data, Class<T> operationPartParameter) {
+    private Operation loadOperation(Map<String, Object> data, Class<T> operationPartParameter) {
 
         Operation operation = new Operation();
 
@@ -90,7 +90,7 @@ public class Operations<T> {
             if (!superclassParameter.equals(operationPartParameter)) {
                 log.warn(
                     "Rules for {} are skipped. Wrong parameterized type found {}<{}>, but {}<{}> required!",
-                    key, operationPartClass, operationPartParameter, operationPartSuperclass, superclassParameter
+                    key, operationPartClass, operationPartParameter, operationPartClass, superclassParameter
                 );
                 continue;
             }
